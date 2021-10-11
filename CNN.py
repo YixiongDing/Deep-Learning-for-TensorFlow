@@ -63,6 +63,14 @@ class CNN(tf.keras.Model):
         return output
 
 
+# 训练过程可视化
+summary_writer = tf.summary.create_file_writer('./tensorboard')     # 参数为记录文件所保存的目录
+
+# 接下来，当需要记录训练过程中的参数时，通过 with 语句指定希望使用的记录器，并对需要记录的参数（一般是 scalar）
+# 运行 tf.summary.scalar(name, tensor, step=batch_index) ，即可将训练过程中参数在 step 时候的值记录下来。
+# 这里的 step 参数可根据自己的需要自行制定，一般可设置为当前训练过程中的 batch 序号。
+
+
 # 模型的训练
 
 # 定义一些模型的超参数
@@ -96,6 +104,14 @@ for batch_index in range(num_batches):
         print("batch %d: loss %f" % (batch_index, loss.numpy()))
     grads = tape.gradient(loss, model.variables)
     optimizer.apply_gradients(grads_and_vars=zip(grads, model.variables))
+
+    # 每运行一次 tf.summary.scalar() ，记录器就会向记录文件中写入一条记录。除了最简单的标量（scalar）以外，TensorBoard 还可以对其他类型的
+    # 数据（如图像，音频等）进行可视化，详见 TensorBoard 文档 。当我们要对训练过程可视化时，在代码目录打开终端（如需要的话进入 TensorFlow 的 conda 环境）
+    # ，运行: tensorboard --logdir=./tensorboard
+    # 然后使用浏览器访问命令行程序所输出的网址（一般是 http://name-of-your-computer:6006），即可访问 TensorBoard 的可视界面
+    with summary_writer.as_default():
+        tf.summary.scalar("loss", loss, step=batch_index)
+        # tf.summary.scalar("MyScalar", my_scalar, step=batch_index)
 
 
 # 模型的评估
